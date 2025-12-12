@@ -1,0 +1,27 @@
+{
+	"name": "Go Web File Server Backend",
+	"image": "mcr.microsoft.com/devcontainers/go:1-1.21-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {}
+	},
+
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"go.toolsManagement.checkForUpdates": "local",
+				"go.useLanguageServer": true,
+				"go.gopath": "/go"
+			},
+			"extensions": [
+				"golang.go"
+			]
+		}
+	},
+
+	"forwardPorts": [8080],
+
+	"postCreateCommand": "go mod download",
+
+	"remoteUser": "vscode"
+}
