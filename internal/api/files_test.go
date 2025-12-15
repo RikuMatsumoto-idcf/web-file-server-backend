@@ -1,7 +1,10 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -42,5 +45,32 @@ func TestFilesHandler_ReturnsFilesJSON(t *testing.T) {
 	}
 	if body.Files[0].Path != "/files/sample1.txt" {
 		t.Fatalf("expected first file path %q, got %q", "/files/sample1.txt", body.Files[0].Path)
+	}
+}
+
+func TestFilesHandler_LogsWhenEncodeFails(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/api/files", nil)
+
+	var logBuf bytes.Buffer
+	prevOut := log.Writer()
+	prevFlags := log.Flags()
+	log.SetOutput(&logBuf)
+	log.SetFlags(0)
+	t.Cleanup(func() {
+		log.SetOutput(prevOut)
+		log.SetFlags(prevFlags)
+	})
+
+	base := httptest.NewRecorder()
+	rw := &errResponseWriter{base: base, err: errors.New("write failed")}
+	FilesHandler(rw, req)
+
+	if !strings.Contains(rw.Header().Get("Content-Type"), "application/json") {
+		t.Fatalf("expected Content-Type to contain application/json, got %q", rw.Header().Get("Content-Type"))
+	}
+
+	logged := logBuf.String()
+	if !strings.Contains(logged, "Failed to encode files response") {
+		t.Fatalf("expected encode failure to be logged, got %q", logged)
 	}
 }
