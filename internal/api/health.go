@@ -13,14 +13,11 @@ type HealthResponse struct {
 
 // HealthHandler はヘルスチェックエンドポイント
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	response := HealthResponse{
 		Status:  "ok",
 		Message: "Server is running",
 	}
 
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
