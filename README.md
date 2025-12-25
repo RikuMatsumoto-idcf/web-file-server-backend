@@ -78,6 +78,11 @@ docker compose -f .devcontainer/docker-compose.yml logs db
 | `DB_PASSWORD` | `password` |
 | `DB_NAME` | `db` |
 
+**⚠️ セキュリティに関する注意**
+- 上記の認証情報は開発環境用の簡易的なものです
+- 本番環境では強力なパスワードと適切なセキュリティ設定を使用してください
+- 本番環境では環境変数を安全に管理する仕組み（AWS Secrets Manager、Kubernetes Secretsなど）を使用してください
+
 ### ローカル環境で実行する場合
 
 前提条件: Go 1.22以降がインストールされていること
