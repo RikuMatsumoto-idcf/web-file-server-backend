@@ -45,7 +45,11 @@ goの勉強用のサンプルウェブアプリ
 **方法2: コマンドラインから接続**
 ```bash
 # コンテナ内のターミナルで実行
+# パスワードを求められたら 'password' を入力
 psql -h db -U user -d db
+
+# または環境変数が設定されている場合はパスワード不要
+PGPASSWORD=password psql -h db -U user -d db
 
 # テーブル一覧を表示
 \dt
