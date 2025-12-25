@@ -1,6 +1,8 @@
 {
 	"name": "Go Web File Server Backend",
-	"image": "mcr.microsoft.com/devcontainers/go:1-1.22-bookworm",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
 	
 	"features": {
 		"ghcr.io/devcontainers/features/git:1": {}
@@ -14,12 +16,14 @@
 				"go.gopath": "/go"
 			},
 			"extensions": [
-				"golang.go"
+				"golang.go",
+				"mtxr.sqltools",
+				"mtxr.sqltools-driver-pg"
 			]
 		}
 	},
 
-	"forwardPorts": [8080],
+	"forwardPorts": [8080, 5432],
 
 	"postCreateCommand": "go mod download",
 
