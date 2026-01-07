@@ -77,3 +77,5 @@ go run cmd/server/main.go
 curl http://localhost:8080/api/health
 curl http://localhost:8080/api/files
 ```
+
+プロテクションテスト
