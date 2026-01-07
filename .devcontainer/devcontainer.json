@@ -5,7 +5,8 @@
 	"workspaceFolder": "/workspace",
 	
 	"features": {
-		"ghcr.io/devcontainers/features/git:1": {}
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/postgresql-client:1": {}
 	},
 
 	"customizations": {
