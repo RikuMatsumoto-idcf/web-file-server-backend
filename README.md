@@ -132,6 +132,10 @@ go run cmd/server/main.go
 }
 ```
 
+## OpenAPI
+
+APIの設計書（OpenAPI 3.0）は [docs/api/openapi.yaml](docs/api/openapi.yaml) にあります。
+
 ## テスト方法
 
 ```bash
