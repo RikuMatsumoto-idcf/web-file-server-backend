@@ -10,7 +10,6 @@ goの勉強用のサンプルウェブアプリ
 │       └── main.go
 ├── internal/
 │   └── api/             # APIハンドラー
-│       ├── health.go    # ヘルスチェックAPI
 │       └── files.go     # ファイル管理API
 ├── .devcontainer/       # Dev Container設定
 │   ├── devcontainer.json
@@ -105,17 +104,6 @@ go run cmd/server/main.go
 
 サーバーはデフォルトで `http://localhost:8080` で起動します。
 
-### ヘルスチェック
-- **URL**: `/api/health`
-- **Method**: GET
-- **レスポンス例**:
-```json
-{
-  "status": "ok",
-  "message": "Server is running"
-}
-```
-
 ### ファイル一覧取得
 - **URL**: `/api/files`
 - **Method**: GET
@@ -140,7 +128,6 @@ APIの設計書（OpenAPI 3.0）は [docs/api/openapi.yaml](docs/api/openapi.yam
 
 ```bash
 # サーバー起動後、別のターミナルで以下を実行
-curl http://localhost:8080/api/health
 curl http://localhost:8080/api/files
 ```
 

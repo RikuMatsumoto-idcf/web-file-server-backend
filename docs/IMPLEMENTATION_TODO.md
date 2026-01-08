@@ -11,7 +11,7 @@
 
 - DI（依存の組み立て）を行う
   - `FileStore` / `FileRepository` 実装（DB）を生成
-  - `usecase` のサービスを生成（`PutFile`, `GetFile`, `HealthCheck`）
+  - `usecase` のサービスを生成（`PutFile`, `GetFile`）
   - HTTPハンドラ/ルータに注入して `http.ListenAndServe` で起動
 - 設定値を読み込む（環境変数 or デフォルト）
   - 例: `PORT`, `DB_DSN`, `MAX_UPLOAD_BYTES`, `ALLOW_OVERWRITE`
@@ -21,7 +21,6 @@
 ## internal/adapter/http（Controller）
 
 ### ルーティング
-- `GET /api/health` を登録
 - `PUT /api/files/{name}` を登録（raw bytes）
 - `GET /api/files/{name}` を登録（raw bytes）
 - Go 1.22 の `http.ServeMux` を使う場合:
@@ -57,11 +56,6 @@
 ---
 
 ## internal/usecase（Application Service）
-
-### HealthCheck
-- `HealthCheck(ctx)` を実装
-  - 現状は固定で `{status:"ok", message:"Server is running"}` でOK
-  - 将来: `FileStore` 疎通などをここに追加できる形に
 
 ### PutFile
 - `PutFile(ctx, name, reader)` を実装

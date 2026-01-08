@@ -3,7 +3,6 @@
 対象API仕様: `docs/api/openapi.yaml`
 
 このガイドのゴール:
-- `GET /api/health` が JSON を返す
 - `PUT /api/files/{name}` が raw bytes を保存して `204` を返す
 - `GET /api/files/{name}` が raw bytes を返す（無ければ `404`）
 - 依存方向を「外側(HTTP/FS) → 内側(usecase/domain)」にする
@@ -101,11 +100,9 @@
 
 ---
 
-## Step 4: usecase（Put/Get/Health を作る）
+## Step 4: usecase（Put/Get を作る）
 
 作るもの:
-- `internal/usecase/health_check.go`
-  - `HealthCheck(ctx)` が `{status:"ok", message:"Server is running"}` を返す
 - `internal/usecase/put_file.go`
   - 入力: `rawName string`, `body io.Reader`（or `domain.FileName` を受ける）
   - `domain.NewFileName(rawName)`
@@ -135,11 +132,8 @@
   - `writeError(w, status, code, message)`
 - `internal/adapter/http/router.go`
   - `func NewMux(deps ...) *http.ServeMux`
-  - `GET /api/health`
   - `PUT /api/files/{name}`
   - `GET /api/files/{name}`
-- `internal/adapter/http/health_handler.go`
-  - `HealthCheck` usecase を呼び、JSONで返す
 - `internal/adapter/http/files_handler.go`
   - PUT:
     - `name := r.PathValue("name")`
@@ -176,8 +170,6 @@
 - `go run ./cmd/server` で起動できる
 
 手動確認（例）:
-- health:
-  - `curl -i http://localhost:8080/api/health`
 - put/get:
   - `printf 'hello' | curl -i -X PUT --data-binary @- http://localhost:8080/api/files/hello.txt`
   - `curl -i http://localhost:8080/api/files/hello.txt`

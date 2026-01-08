@@ -74,3 +74,20 @@ func TestFilesHandler_LogsWhenEncodeFails(t *testing.T) {
 		t.Fatalf("expected encode failure to be logged, got %q", logged)
 	}
 }
+
+type errResponseWriter struct {
+	base http.ResponseWriter
+	err  error
+}
+
+func (w *errResponseWriter) Header() http.Header {
+	return w.base.Header()
+}
+
+func (w *errResponseWriter) Write(p []byte) (int, error) {
+	return 0, w.err
+}
+
+func (w *errResponseWriter) WriteHeader(statusCode int) {
+	w.base.WriteHeader(statusCode)
+}
