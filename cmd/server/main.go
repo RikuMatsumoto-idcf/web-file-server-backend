@@ -13,7 +13,6 @@ func main() {
 	mux := http.NewServeMux()
 
 	// APIハンドラーの登録
-	mux.HandleFunc("/api/health", api.HealthHandler)
 	mux.HandleFunc("/api/files", api.FilesHandler)
 
 	// サーバーの起動

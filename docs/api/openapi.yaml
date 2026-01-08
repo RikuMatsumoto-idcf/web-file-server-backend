@@ -1,0 +1,94 @@
+openapi: 3.0.3
+info:
+  title: web-file-server-backend API
+  version: 0.1.0
+  description: |
+    Minimal API definition for file upload/download.
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /api/files/{name}:
+    put:
+      summary: Upload (store) a file by name
+      description: |
+        Upload a file whose download key is the given `name`.
+        The request body is the raw file bytes (not multipart).
+
+        Success response contains no body.
+      operationId: putFile
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Unique name used for download.
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "204":
+          description: Uploaded successfully (no content)
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Name already exists (if overwrite is not allowed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          description: Payload too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      summary: Download a file by name
+      operationId: getFile
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: bad_request
+        message:
+          type: string
+          example: invalid name
