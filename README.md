@@ -9,8 +9,12 @@ goの勉強用のサンプルウェブアプリ
 │   └── server/          # アプリケーションエントリーポイント
 │       └── main.go
 ├── internal/
-│   └── api/             # APIハンドラー
-│       └── files.go     # ファイル管理API
+│   ├── adapter/http/    # HTTPハンドラ（OpenAPI準拠）
+│   ├── domain/          # ドメイン（値オブジェクト、エラー種別）
+│   ├── infra/           # DB・設定など外部依存
+│   ├── port/            # 永続化ポート（interface）
+│   ├── usecase/         # ユースケース
+│   └── api/             # 旧実装（段階的に削除予定）
 ├── .devcontainer/       # Dev Container設定
 │   ├── devcontainer.json
 │   ├── docker-compose.yml
@@ -53,11 +57,8 @@ PGPASSWORD=password psql -h db -U user -d db
 # テーブル一覧を表示
 \dt
 
-# usersテーブルのデータを確認
-SELECT * FROM users;
-
-# todosテーブルのデータを確認
-SELECT * FROM todos;
+-- filesテーブルのデータを確認
+SELECT name, octet_length(data) AS size_bytes FROM files ORDER BY name;
 ```
 
 **方法3: Docker Composeコマンドで確認**
@@ -104,20 +105,26 @@ go run cmd/server/main.go
 
 サーバーはデフォルトで `http://localhost:8080` で起動します。
 
-### ファイル一覧取得
-- **URL**: `/api/files`
+### ファイルアップロード
+- **URL**: `/api/files/{name}`
+- **Method**: PUT
+- **Body**: raw bytes（multipartではない）
+- **Success**: `204 No Content`
+
+例:
+```bash
+printf 'hello' | curl -i -X PUT --data-binary @- http://localhost:8080/api/files/hello.txt
+```
+
+### ファイルダウンロード
+- **URL**: `/api/files/{name}`
 - **Method**: GET
-- **レスポンス例**:
-```json
-{
-  "files": [
-    {
-      "name": "sample1.txt",
-      "size": 1024,
-      "path": "/files/sample1.txt"
-    }
-  ]
-}
+- **Success**: `200 OK` + `Content-Type: application/octet-stream` + raw bytes
+- **Not Found**: `404`
+
+例:
+```bash
+curl -i http://localhost:8080/api/files/hello.txt
 ```
 
 ## OpenAPI
@@ -127,35 +134,23 @@ APIの設計書（OpenAPI 3.0）は [docs/api/openapi.yaml](docs/api/openapi.yam
 ## テスト方法
 
 ```bash
-# サーバー起動後、別のターミナルで以下を実行
-curl http://localhost:8080/api/files
+# ユニットテスト
+go test ./...
+
+# 手動疎通（サーバー起動後）
+printf 'hello' | curl -i -X PUT --data-binary @- http://localhost:8080/api/files/hello.txt
+curl -i http://localhost:8080/api/files/hello.txt
 ```
 
 ## データベーススキーマ
 
-### usersテーブル
-ユーザー情報を管理するテーブルです。
+### filesテーブル（このAPIの主題）
+アップロードされたファイルを「名前 + バイナリ本体」として保存します。
 
 | カラム | 型 | 説明 |
 |--------|-----|------|
 | id | SERIAL | 主キー |
-| username | VARCHAR(50) | ユーザー名（ユニーク） |
-| email | VARCHAR(100) | メールアドレス（ユニーク） |
-| password_hash | VARCHAR(255) | パスワードハッシュ |
-| created_at | TIMESTAMP | 作成日時 |
-| updated_at | TIMESTAMP | 更新日時 |
-
-### todosテーブル
-TODOタスクを管理するテーブルです。
-
-| カラム | 型 | 説明 |
-|--------|-----|------|
-| id | SERIAL | 主キー |
-| user_id | INTEGER | ユーザーID（外部キー） |
-| title | VARCHAR(200) | タスクタイトル |
-| description | TEXT | タスク詳細 |
-| completed | BOOLEAN | 完了フラグ |
-| priority | INTEGER | 優先度 |
-| due_date | DATE | 期限日 |
+| name | TEXT | ファイル名（ユニーク） |
+| data | BYTEA | ファイル本体 |
 | created_at | TIMESTAMP | 作成日時 |
 | updated_at | TIMESTAMP | 更新日時 |

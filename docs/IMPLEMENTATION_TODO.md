@@ -116,14 +116,21 @@
 ## internal/infra/storage/db（FileStore実装：DB）
 
 - `FileStore` をDBに保存する実装（Postgres想定）
-  - テーブル例: `files(name PRIMARY KEY, data BYTEA, created_at, updated_at)`
-  - `name` は一意制約で担保
+  - テーブル例: `files(id PRIMARY KEY, name UNIQUE, data BYTEA, created_at, updated_at)`
+  - `id` を主キーにし、`name` は一意制約で担保
   - `data` にバイナリ（Postgres: `BYTEA`）を保存
   - Exists / Get / Put を実装（SQL/ORMはここに閉じ込める）
 - 返すエラーを `domain/usecase` の想定に合わせて正規化
 
+### DBスキーマ（Dev Containerのinitdb）
+- `.devcontainer/initdb/` に `files` テーブル作成SQLを追加
+  - 例: `03_files.sql`
+  - `CREATE TABLE IF NOT EXISTS files (...);`
+
 ### テスト（infra）
-- テストDB（例: SQLite in-memory）で Put/Get/Exists の基本動作
+- テストDB（Postgres）で Put/Get/Exists の基本動作
+  - Dev Containerの `db` サービスを使う
+  - DSN例: `postgres://user:password@db:5432/db?sslmode=disable`
 
 ---
 

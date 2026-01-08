@@ -5,11 +5,16 @@
 このガイドのゴール:
 - `PUT /api/files/{name}` が raw bytes を保存して `204` を返す
 - `GET /api/files/{name}` が raw bytes を返す（無ければ `404`）
-- 依存方向を「外側(HTTP/FS) → 内側(usecase/domain)」にする
+- 依存方向を「外側(HTTP/DB) → 内側(usecase/domain)」にする
 
 前提:
 - 既存コード（`internal/api`）は、動作確認できるまで残してOK
 - ルーティングは Go 1.22 の `http.ServeMux` を使う想定（`/api/files/{name}` パターン）
+- 保存先はPostgres（ファイル名 + raw bytes をDBに保存）
+
+補足（初心者向け）:
+- DBはDev Containerの `db` サービスで起動している想定（`.devcontainer/docker-compose.yml`）
+- スキーマ初期化SQLは `.devcontainer/initdb/` に置く（起動時に自動適用）
 
 ---
 
@@ -29,6 +34,21 @@
 
 合格条件:
 - テストが現状で通る（通らないなら、このガイドのStep 8以降で更新していく）
+
+---
+
+## Step 0.5: DB準備（filesテーブルを用意する）
+
+やること:
+- Postgresが起動していることを確認
+  - 例: `psql -h db -U user -d db`（パスワード: `password`）
+- `files` テーブルを作成するDDLを用意
+  - 置き場所: `.devcontainer/initdb/`（例: `03_files.sql`）
+  - 最小例:
+    - `files(id SERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL, data BYTEA NOT NULL, created_at, updated_at)`
+
+合格条件:
+- `\dt` で `files` テーブルが見える
 
 ---
 
@@ -73,15 +93,15 @@
 
 ---
 
-## Step 3: infra（ローカルFSの FileStore 実装を作る）
+## Step 3: infra（DBの FileStore 実装を作る）
 
-（DB保存に変更するため、Step 3 は「DB実装」前提に読み替え）
+（このプロジェクトはDB保存前提なので、Step 3 は最初から「DB実装」）
 
 作るもの:
 - `internal/infra/storage/db/filestore.go`
   - `type Store struct { DB *sql.DB }` など
   - `Put/Get/Exists` を実装
-  - テーブル例: `files(name PRIMARY KEY, data BYTEA)`
+  - テーブル例: `files(id PRIMARY KEY, name UNIQUE, data BYTEA)`
   - `Put` はトランザクションを使う（必要なら）
 
 実装の注意:
@@ -164,7 +184,7 @@
 
 やること:
 - `cmd/server/main.go` を「新しい router.NewMux を起動」へ差し替える
-- DB接続（`DB_DSN`）や最大サイズなどの設定を読む
+- DB接続（`DB_DSN` もしくは `DB_HOST` 等）や最大サイズなどの設定を読む
 
 合格条件:
 - `go run ./cmd/server` で起動できる
@@ -205,3 +225,4 @@
 - 413はHTTP層で発生させるのが簡単（`http.MaxBytesReader`）
 - `io.ReadCloser` は必ず `defer Close()`（usecase側 or http側で責務を決めて統一）
 - `domain.FileName` のルールは「少し厳しめ」くらいが安全（後から緩められる）
+- Postgresのスキーマ作成は「最初にやっておく」と後が楽（`files` テーブルが無いと疎通/テストで詰まりやすい）
