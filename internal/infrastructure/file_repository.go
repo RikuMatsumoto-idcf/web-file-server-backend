@@ -1,26 +1,26 @@
 package infrastructure
 
 import (
-"context"
-"io"
+	"context"
+	"io"
 
-"github.com/RikuMatsumoto-idcf/web-file-server-backend/internal/domain"
-"github.com/RikuMatsumoto-idcf/web-file-server-backend/internal/usecase"
+	"github.com/RikuMatsumoto-idcf/web-file-server-backend/internal/domain"
+	"github.com/RikuMatsumoto-idcf/web-file-server-backend/internal/usecase"
 )
 
 // fileRepository implements usecase.FileRepository interface
 // This is the infrastructure layer that handles actual file storage
 type fileRepository struct {
-// You can add fields here for database connection, file system path, etc.
-// Example: db *sql.DB, storagePath string
+	// You can add fields here for database connection, file system path, etc.
+	// Example: db *sql.DB, storagePath string
 }
 
 // NewFileRepository creates a new FileRepository instance
 // TODO: Add necessary dependencies (e.g., database connection, storage path)
 func NewFileRepository( /* add dependencies here */ ) usecase.FileRepository {
-return &fileRepository{
-// Initialize fields here
-}
+	return &fileRepository{
+		// Initialize fields here
+	}
 }
 
 // Save implements usecase.FileRepository.Save
@@ -30,7 +30,7 @@ return &fileRepository{
 // 3. Handle duplicate file names appropriately
 // 4. Return errors if storage fails
 func (r *fileRepository) Save(ctx context.Context, name domain.FileName, data io.Reader) error {
-panic("implement me")
+	panic("implement me")
 }
 
 // FindByName implements usecase.FileRepository.FindByName
@@ -40,7 +40,7 @@ panic("implement me")
 // 3. Return an io.ReadCloser containing the file data
 // 4. Ensure the returned ReadCloser can be closed by the caller
 func (r *fileRepository) FindByName(ctx context.Context, name domain.FileName) (io.ReadCloser, error) {
-panic("implement me")
+	panic("implement me")
 }
 
 // Exists implements usecase.FileRepository.Exists
@@ -49,7 +49,7 @@ panic("implement me")
 // 2. Return true if exists, false otherwise
 // 3. Handle errors appropriately
 func (r *fileRepository) Exists(ctx context.Context, name domain.FileName) (bool, error) {
-panic("implement me")
+	panic("implement me")
 }
 
 // ListAll implements usecase.FileRepository.ListAll
@@ -58,7 +58,7 @@ panic("implement me")
 // 2. Return slice of all file names
 // 3. Handle empty list case (return empty slice, not error)
 func (r *fileRepository) ListAll(ctx context.Context) ([]domain.FileName, error) {
-panic("implement me")
+	panic("implement me")
 }
 
 // Remove implements usecase.FileRepository.Remove
@@ -67,5 +67,5 @@ panic("implement me")
 // 2. If file doesn't exist, return domain.ErrNotFound
 // 3. Handle deletion errors
 func (r *fileRepository) Remove(ctx context.Context, name domain.FileName) error {
-panic("implement me")
+	panic("implement me")
 }

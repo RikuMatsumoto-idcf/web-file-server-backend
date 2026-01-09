@@ -26,7 +26,7 @@ func main() {
 	// Example:
 	//   db := setupDatabase()
 	//   fileRepo := infrastructure.NewFileRepository(db)
-	
+
 	// For now, this will panic when called because NewFileRepository needs parameters
 	// You need to implement the repository initialization first
 	fileRepo := infrastructure.NewFileRepository()
