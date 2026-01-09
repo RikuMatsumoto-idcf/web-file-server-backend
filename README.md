@@ -1,112 +1,104 @@
 # web-file-server-backend
-goの勉強用のサンプルウェブアプリ
+goの勉強用のサンプルウェブアプリ（Echo + Clean Architecture版）
 
-## プロジェクト構成
+## ⚠️ 重要：学習用スケルトンコード
+
+このプロジェクトは **学習用の骨組み** です。ほとんどのメソッドは `panic("implement me")` となっており、実装はあなた自身が行う必要があります。
+
+実装ガイドは [docs/implementation_guide.md](docs/implementation_guide.md) を参照してください。
+
+## プロジェクト構成（Clean Architecture）
 
 ```
 .
 ├── cmd/
 │   └── server/          # アプリケーションエントリーポイント
-│       └── main.go
+│       └── main.go      # Echoサーバーの起動とDI
 ├── internal/
-│   ├── adapter/http/    # HTTPハンドラ（OpenAPI準拠）
-│   ├── domain/          # ドメイン（値オブジェクト、エラー種別）
-│   ├── infra/           # DB・設定など外部依存
-│   ├── port/            # 永続化ポート（interface）
-│   ├── usecase/         # ユースケース
-│   └── api/             # 旧実装（段階的に削除予定）
-├── .devcontainer/       # Dev Container設定
-│   ├── devcontainer.json
-│   ├── docker-compose.yml
-│   └── initdb/          # データベース初期化SQL
-│       ├── 01_schema.sql
-│       └── 02_seeds.sql
+│   ├── domain/          # ドメイン層（ビジネスロジックの中心）
+│   │   ├── file_model.go    # Fileエンティティ、値オブジェクト
+│   │   └── errors.go        # ドメインエラー定義
+│   ├── usecase/         # ユースケース層（アプリケーションのビジネスルール）
+│   │   └── file_usecase.go  # ファイル操作のビジネスロジック
+│   ├── infrastructure/  # インフラ層（外部システムとのやり取り）
+│   │   └── file_repository.go  # ファイルストレージの実装
+│   └── handler/         # ハンドラ層（HTTPリクエスト/レスポンス）
+│       └── file_handler.go     # Echoハンドラー
+├── docs/
+│   ├── implementation_guide.md  # 📖 実装ガイド（必読）
+│   └── api/
+│       └── openapi.yaml         # API仕様書
 ├── go.mod
 └── README.md
 ```
 
-## 開発環境のセットアップ
+### レイヤー間の依存関係
 
-### Dev Containerを使用する場合（推奨）
-
-このプロジェクトは、GoアプリケーションとPostgreSQLデータベースを含むDocker Compose環境で動作します。
-
-1. Visual Studio Codeで本プロジェクトを開く
-2. 拡張機能「Dev Containers」がインストールされていることを確認
-3. コマンドパレット（Ctrl+Shift+P / Cmd+Shift+P）から「Dev Containers: Reopen in Container」を選択
-4. コンテナが起動し、Go開発環境とPostgreSQLデータベースが自動的に構築されます
-
-#### データベースの確認
-
-コンテナ起動後、以下の方法でデータベースが正常に起動していることを確認できます：
-
-**方法1: VSCode SQLToolsを使用**
-1. VSCodeのサイドバーからSQLToolsアイコンをクリック
-2. 新しい接続を作成（接続情報は下記の環境変数を参照）
-3. テーブルとデータを確認
-
-**方法2: コマンドラインから接続**
-```bash
-# コンテナ内のターミナルで実行
-# パスワードを求められたら 'password' を入力
-psql -h db -U user -d db
-
-# または環境変数が設定されている場合はパスワード不要
-PGPASSWORD=password psql -h db -U user -d db
-
-# テーブル一覧を表示
-\dt
-
--- filesテーブルのデータを確認
-SELECT name, octet_length(data) AS size_bytes FROM files ORDER BY name;
+```
+Handler → Usecase → Domain
+Infrastructure → Domain, Usecase
 ```
 
-**方法3: Docker Composeコマンドで確認**
-```bash
-# コンテナの状態を確認（ホストマシンから）
-docker compose -f .devcontainer/docker-compose.yml ps
+内側のレイヤー（Domain）は外側のレイヤー（Handler, Infrastructure）に依存しません。
 
-# dbコンテナのログを確認
-docker compose -f .devcontainer/docker-compose.yml logs db
-```
+## 使用技術
 
-### データベース接続情報
+- **Go 1.24+**
+- **Echo v4**: 高性能なWebフレームワーク
+- **Clean Architecture**: レイヤー分離による保守性の高い設計
 
-アプリケーションからデータベースに接続する際は、以下の環境変数が利用可能です：
+## 開発の始め方
 
-| 環境変数 | 値 |
-|---------|-----|
-| `DB_HOST` | `db` |
-| `DB_PORT` | `5432` |
-| `DB_USER` | `user` |
-| `DB_PASSWORD` | `password` |
-| `DB_NAME` | `db` |
+### 1. 実装ガイドを読む
 
-**⚠️ セキュリティに関する注意**
-- 上記の認証情報は開発環境用の簡易的なものです
-- 本番環境では強力なパスワードと適切なセキュリティ設定を使用してください
-- 本番環境では環境変数を安全に管理する仕組み（AWS Secrets Manager、Kubernetes Secretsなど）を使用してください
+まず [docs/implementation_guide.md](docs/implementation_guide.md) を読んでください。以下の内容が含まれています：
 
-### ローカル環境で実行する場合
+- Clean Architectureの概要と依存関係の図
+- 各レイヤーの役割と責任
+- 実装手順（Step by Step）
+- Echoフレームワークの使い方
+- 依存性注入(DI)の説明
 
-前提条件: Go 1.22以降がインストールされていること
+### 2. 依存関係のインストール
 
 ```bash
-# 依存関係のダウンロード
 go mod download
+```
 
-# サーバーの起動
+### 3. 実装を開始
+
+推奨する実装順序：
+
+1. **Domain層**: `internal/domain/file_model.go` の `NewFileName` を実装
+2. **Infrastructure層**: `internal/infrastructure/file_repository.go` の各メソッドを実装
+3. **Usecase層**: `internal/usecase/file_usecase.go` の各メソッドを実装
+4. **Handler層**: `internal/handler/file_handler.go` の各メソッドを実装
+
+### 4. サーバーの起動
+
+```bash
 go run cmd/server/main.go
 ```
 
-**注意**: ローカル環境で実行する場合、PostgreSQLデータベースは含まれません。
+サーバーは `http://localhost:8080` で起動します。
 
-## APIエンドポイント
 
-サーバーはデフォルトで `http://localhost:8080` で起動します。
+## APIエンドポイント（実装後に使用可能）
+
+実装が完了すると、以下のエンドポイントが使用できるようになります。
+
+### ファイル一覧
+- **URL**: `/api/files`
+- **Method**: GET
+- **Success**: `200 OK` + JSON array
+
+例:
+```bash
+curl -i http://localhost:8080/api/files
+```
 
 ### ファイルアップロード
-- **URL**: `/api/files/{name}`
+- **URL**: `/api/files/:name`
 - **Method**: PUT
 - **Body**: raw bytes（multipartではない）
 - **Success**: `204 No Content`
@@ -117,7 +109,7 @@ printf 'hello' | curl -i -X PUT --data-binary @- http://localhost:8080/api/files
 ```
 
 ### ファイルダウンロード
-- **URL**: `/api/files/{name}`
+- **URL**: `/api/files/:name`
 - **Method**: GET
 - **Success**: `200 OK` + `Content-Type: application/octet-stream` + raw bytes
 - **Not Found**: `404`
@@ -127,30 +119,39 @@ printf 'hello' | curl -i -X PUT --data-binary @- http://localhost:8080/api/files
 curl -i http://localhost:8080/api/files/hello.txt
 ```
 
-## OpenAPI
+### ファイル削除
+- **URL**: `/api/files/:name`
+- **Method**: DELETE
+- **Success**: `204 No Content`
+- **Not Found**: `404`
 
-APIの設計書（OpenAPI 3.0）は [docs/api/openapi.yaml](docs/api/openapi.yaml) にあります。
-
-## テスト方法
-
+例:
 ```bash
-# ユニットテスト
-go test ./...
-
-# 手動疎通（サーバー起動後）
-printf 'hello' | curl -i -X PUT --data-binary @- http://localhost:8080/api/files/hello.txt
-curl -i http://localhost:8080/api/files/hello.txt
+curl -i -X DELETE http://localhost:8080/api/files/hello.txt
 ```
 
-## データベーススキーマ
+## テスト
 
-### filesテーブル（このAPIの主題）
-アップロードされたファイルを「名前 + バイナリ本体」として保存します。
+```bash
+# 全てのテストを実行
+go test ./...
 
-| カラム | 型 | 説明 |
-|--------|-----|------|
-| id | SERIAL | 主キー |
-| name | TEXT | ファイル名（ユニーク） |
-| data | BYTEA | ファイル本体 |
-| created_at | TIMESTAMP | 作成日時 |
-| updated_at | TIMESTAMP | 更新日時 |
+# 特定のパッケージをテスト
+go test ./internal/domain
+
+# カバレッジ付きで実行
+go test -cover ./...
+```
+
+## 学習のヒント
+
+- 各ファイルには詳細なTODOコメントがあります
+- `panic("implement me")` を1つずつ実装していってください
+- テストを書きながら実装すると理解が深まります
+- 困ったときは [docs/implementation_guide.md](docs/implementation_guide.md) を参照してください
+
+## Dev Container（オプション）
+
+このプロジェクトはDev Container環境でも動作します。PostgreSQLデータベースを使用したい場合は、Dev Containerを利用してください。
+
+詳細は `.devcontainer/` ディレクトリを参照してください。
